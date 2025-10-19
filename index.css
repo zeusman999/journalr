@@ -13,16 +13,18 @@
     --bg-color: #fff;
     --border-color: #eee;
     --accent-color: #4CAF50; /* Green for current day */
+    --primary-action-color: #2e7d32;
 }
 
 body {
     font-family: var(--font-sans);
     background-color: var(--bg-color);
     color: var(--text-color);
+    overflow-y: scroll;
 }
 
 #root, .app-container {
-    height: 100vh;
+    min-height: 100vh;
 }
 
 .app-container {
@@ -33,25 +35,122 @@ body {
     flex-direction: column;
 }
 
+/* Login Page */
+.login-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+    padding-bottom: 10vh;
+}
+
+.login-title {
+    font-family: var(--font-serif);
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.login-description {
+    font-size: 1.1rem;
+    color: #555;
+    line-height: 1.6;
+    max-width: 400px;
+    margin-bottom: 2.5rem;
+}
+
+.login-form {
+    width: 100%;
+    max-width: 350px;
+}
+
+.login-form-intro {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+.login-form input[type="email"] {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.login-form button {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: var(--primary-action-color);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.login-form button:hover {
+    background-color: #1b5e20;
+}
+
 /* Header */
 .app-header {
     text-align: center;
     padding: 2rem 0;
+    width: 100%;
+    position: relative; /* Needed for absolute positioning of top nav */
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    position: absolute;
+    top: 2rem;
+    left: 0;
+    padding: 0 2rem;
+    max-width: 840px;
+    margin: 0 auto;
 }
 
 .app-title {
-    position: absolute;
-    top: 2rem;
-    left: 2rem;
     font-weight: bold;
     font-size: 1.2rem;
 }
+
+.main-nav {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.main-nav button {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.main-nav button:hover {
+    background-color: #f0f0f0;
+}
+
 
 .date-display {
     font-family: var(--font-serif);
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 1rem;
+    margin-top: 3rem; /* Push down to not overlap with header-top */
 }
 
 /* Month Navigation */
@@ -151,6 +250,7 @@ body {
     line-height: 1.7;
     color: var(--text-color);
     background-color: transparent;
+    min-height: 300px;
 }
 
 .editor-textarea::placeholder {
@@ -161,10 +261,73 @@ body {
     outline: none;
 }
 
+/* Stats Page */
+.stats-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.stats-date-subtitle {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    margin-top: 1rem;
+    flex-grow: 1;
+    padding-bottom: 2rem;
+}
+
+.stat-card {
+    background-color: #f9f9f9;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.stat-card.highlight-card {
+    padding: 2rem;
+}
+
+.stat-card.chart-card {
+    min-height: 300px;
+    position: relative; /* For chart.js canvas */
+}
+
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: var(--text-color);
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
 /* Footer */
 .app-footer {
     padding: 1rem 0;
     text-align: center;
     font-size: 0.9rem;
     color: var(--text-light);
+    margin-top: auto; /* Push footer to the bottom */
 }
