@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import dataStore, { countWords } from './dataStore';
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
@@ -101,60 +102,6 @@ const getWordCountColor = (count: number): string => {
 };
 
 
-// --- DATA STORE ABSTRACTION ---
-// This section prepares the app for a real database by abstracting data operations.
-// Currently, it uses localStorage, but can be easily swapped out later.
-
-function countWords(text: string): number {
-    if (!text) return 0;
-    return text.trim().split(/\s+/).filter(Boolean).length;
-}
-
-const dataStore = {
-    async login(email: string): Promise<void> {
-        localStorage.setItem('isLoggedIn', 'true');
-        // In a real DB, you'd handle user creation/login here.
-        console.log(`Simulating login for ${email}`);
-    },
-
-    async logout(): Promise<void> {
-        localStorage.removeItem('isLoggedIn');
-    },
-
-    async isLoggedIn(): Promise<boolean> {
-        return !!localStorage.getItem('isLoggedIn');
-    },
-
-    async getEntry(dateKey: string): Promise<string | null> {
-        return localStorage.getItem(`journal-entry-${dateKey}`);
-    },
-
-    async saveEntry(dateKey: string, content: string): Promise<void> {
-        const wordCount = countWords(content);
-        if (wordCount > 0) {
-            localStorage.setItem(`journal-entry-${dateKey}`, content);
-        } else {
-            // If the entry is empty, remove it to keep storage clean.
-            localStorage.removeItem(`journal-entry-${dateKey}`);
-        }
-    },
-
-    async getAllEntries(): Promise<Map<string, number>> {
-        const allEntryData = new Map<string, number>();
-        const allKeys = Object.keys(localStorage)
-            .filter(key => key.startsWith('journal-entry-'));
-        
-        allKeys.forEach(key => {
-            const content = localStorage.getItem(key) || '';
-            const wordCount = countWords(content);
-            if (wordCount > 0) {
-                const dateKey = key.replace('journal-entry-', '');
-                allEntryData.set(dateKey, wordCount);
-            }
-        });
-        return allEntryData;
-    }
-};
 
 // --- COMPONENTS ---
 
@@ -437,8 +384,8 @@ function DailyStatsView({ onNavigate, dateKey }: DailyStatsViewProps) {
         const values = Object.values(data);
 
         // Filter out empty values for cleaner charts
-        const filteredLabels = labels.filter((_, i) => values[i] > 0);
-        const filteredValues = values.filter(v => v > 0);
+        const filteredLabels = labels.filter((_, i) => (values[i] as number) > 0);
+        const filteredValues = values.filter(v => (v as number) > 0);
         
         if (filteredValues.length === 0) return null;
 
