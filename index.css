@@ -5,123 +5,166 @@
     padding: 0;
 }
 
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f9fafb; /* gray-50 */
-    color: #111827; /* gray-900 */
+:root {
+    --font-sans: 'Inter', sans-serif;
+    --font-serif: 'Lora', serif;
+    --text-color: #333;
+    --text-light: #888;
+    --bg-color: #fff;
+    --border-color: #eee;
+    --accent-color: #4CAF50; /* Green for current day */
 }
 
-/* App container */
-#root {
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+#root, .app-container {
     height: 100vh;
 }
 
-/* Main Journal Editor Component */
-.journal-editor {
+.app-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    background-color: #f9fafb; /* gray-50 */
 }
 
-.editor-header {
-    padding: 1rem;
+/* Header */
+.app-header {
     text-align: center;
-    background-color: #fff;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 2rem 0;
 }
 
-.editor-header h1 {
-    font-size: 1.5rem;
+.app-title {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.date-display {
+    font-family: var(--font-serif);
+    font-size: 2rem;
     font-weight: 700;
+    margin-bottom: 1rem;
 }
 
-.editor-header p {
-    color: #6b7280;
-    margin-top: 0.25rem;
+/* Month Navigation */
+.month-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
 }
 
+.month-nav button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-color);
+    padding: 0.25rem 0.5rem;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.month-nav button:hover {
+    color: #000;
+}
+
+.month-nav span {
+    font-weight: bold;
+    color: #555;
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Monthly Streak Tracker */
+.streak-tracker-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.day-grid {
+    display: grid;
+    grid-template-columns: repeat(31, 1fr);
+    gap: 4px;
+}
+
+.day-square {
+    width: 18px;
+    height: 18px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.day-square.is-selected {
+    border-color: var(--text-color);
+    box-shadow: 0 0 0 1px var(--text-color);
+}
+
+.day-square.is-today {
+    border-color: var(--accent-color);
+}
+
+.day-square.is-future {
+    background-color: #fafafa;
+    border-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.day-square.is-invisible {
+    visibility: hidden;
+}
+
+
+.streak-info {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+/* Main Editor */
 .editor-container {
     flex-grow: 1;
-    padding: 1rem;
-    padding-bottom: 8rem; /* Space for the fixed bars */
+    display: flex;
+    flex-direction: column;
 }
 
 .editor-textarea {
+    flex-grow: 1;
     width: 100%;
-    height: 100%;
-    padding: 1.5rem;
-    font-size: 1.125rem; /* text-lg */
-    line-height: 1.75rem;
-    border: 1px solid #d1d5db; /* border-gray-300 */
-    border-radius: 0.5rem; /* rounded-md */
+    border: none;
     resize: none;
-    background-color: #fff;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    padding: 1rem 0;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text-color);
+    background-color: transparent;
+}
+
+.editor-textarea::placeholder {
+    color: #ccc;
 }
 
 .editor-textarea:focus {
     outline: none;
-    border-color: #3b82f6; /* ring-blue-500 */
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); /* ring-2 */
 }
 
-/* Status text */
-.status-text {
+/* Footer */
+.app-footer {
+    padding: 1rem 0;
     text-align: center;
-    padding: 0.5rem;
-    font-size: 0.875rem; /* text-sm */
-    color: #6b7280; /* text-gray-500 */
-    position: fixed;
-    bottom: 60px; /* Adjust based on word count bar height */
-    width: 100%;
-    background-color: #f9fafb;
-    z-index: 10;
-}
-
-/* Word Count Bar Component */
-.word-count-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #f3f4f6; /* bg-gray-100 */
-    padding: 0.75rem 1rem;
-    border-top: 1px solid #d1d5db; /* border-gray-300 */
-    z-index: 10;
-}
-
-.word-count-bar-content {
-    width: 100%;
-    max-width: 56rem; /* max-w-4xl */
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-.word-count-text {
-    font-size: 0.875rem; /* text-sm */
-    color: #4b5563; /* text-gray-600 */
-    white-space: nowrap;
-}
-
-.word-count-text span {
-    font-weight: 700;
-}
-
-.progress-bar-container {
-    width: 100%;
-    background-color: #e5e7eb; /* bg-gray-200 */
-    border-radius: 9999px; /* rounded-full */
-    height: 0.625rem; /* h-2.5 */
-    overflow: hidden;
-}
-
-.progress-bar-fill {
-    background-color: #2563eb; /* bg-blue-600 */
-    height: 0.625rem; /* h-2.5 */
-    border-radius: 9999px; /* rounded-full */
-    transition: width 0.3s ease-in-out;
+    font-size: 0.9rem;
+    color: var(--text-light);
 }

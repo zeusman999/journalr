@@ -1,5 +1,5 @@
 {
-  "name": "Journalr",
-  "description": "Free-writing",
+  "name": "750 Words Journal",
+  "description": "A minimalist daily writing application inspired by 750words.com. Features a streak tracker and date navigation.",
   "requestFramePermissions": []
 }

@@ -1,5 +1,5 @@
 {
-  "name": "journalr",
+  "name": "750-words-journal",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react-dom": "^19.2.0",
-    "react": "^19.2.0"
+    "react-dom": "18.2.0",
+    "react": "18.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
