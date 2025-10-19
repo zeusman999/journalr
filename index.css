@@ -35,6 +35,19 @@ body {
     flex-direction: column;
 }
 
+/* Loading State */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+    padding-bottom: 10vh;
+    color: var(--text-light);
+}
+
+
 /* Login Page */
 .login-container {
     display: flex;

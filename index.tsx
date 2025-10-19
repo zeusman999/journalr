@@ -66,11 +66,6 @@ function analyzeText(text: string): AnalysisResult {
 
 // --- UTILITY FUNCTIONS ---
 
-function countWords(text: string): number {
-  if (!text) return 0;
-  return text.trim().split(/\s+/).filter(Boolean).length;
-}
-
 function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
   let timeout: number;
   return (...args: Parameters<T>) => {
@@ -106,12 +101,69 @@ const getWordCountColor = (count: number): string => {
 };
 
 
+// --- DATA STORE ABSTRACTION ---
+// This section prepares the app for a real database by abstracting data operations.
+// Currently, it uses localStorage, but can be easily swapped out later.
+
+function countWords(text: string): number {
+    if (!text) return 0;
+    return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+const dataStore = {
+    async login(email: string): Promise<void> {
+        localStorage.setItem('isLoggedIn', 'true');
+        // In a real DB, you'd handle user creation/login here.
+        console.log(`Simulating login for ${email}`);
+    },
+
+    async logout(): Promise<void> {
+        localStorage.removeItem('isLoggedIn');
+    },
+
+    async isLoggedIn(): Promise<boolean> {
+        return !!localStorage.getItem('isLoggedIn');
+    },
+
+    async getEntry(dateKey: string): Promise<string | null> {
+        return localStorage.getItem(`journal-entry-${dateKey}`);
+    },
+
+    async saveEntry(dateKey: string, content: string): Promise<void> {
+        const wordCount = countWords(content);
+        if (wordCount > 0) {
+            localStorage.setItem(`journal-entry-${dateKey}`, content);
+        } else {
+            // If the entry is empty, remove it to keep storage clean.
+            localStorage.removeItem(`journal-entry-${dateKey}`);
+        }
+    },
+
+    async getAllEntries(): Promise<Map<string, number>> {
+        const allEntryData = new Map<string, number>();
+        const allKeys = Object.keys(localStorage)
+            .filter(key => key.startsWith('journal-entry-'));
+        
+        allKeys.forEach(key => {
+            const content = localStorage.getItem(key) || '';
+            const wordCount = countWords(content);
+            if (wordCount > 0) {
+                const dateKey = key.replace('journal-entry-', '');
+                allEntryData.set(dateKey, wordCount);
+            }
+        });
+        return allEntryData;
+    }
+};
+
 // --- COMPONENTS ---
 
-function LoginPage({ onLogin }: { onLogin: () => void }) {
-    const handleSubmit = (e: React.FormEvent) => {
+function LoginPage({ onLogin }: { onLogin: (email: string) => void }) {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onLogin();
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get('email') as string;
+        onLogin(email);
     };
 
     return (
@@ -124,7 +176,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
             </p>
             <form className="login-form" onSubmit={handleSubmit}>
                 <p className="login-form-intro">Enter your email to start your journey.</p>
-                <input type="email" placeholder="you@example.com" required aria-label="Email Address"/>
+                <input type="email" name="email" placeholder="you@example.com" required aria-label="Email Address"/>
                 <button type="submit">Start Writing</button>
             </form>
         </div>
@@ -201,35 +253,30 @@ function JournalView({ onNavigate, onLogout }: JournalViewProps) {
     const [entries, setEntries] = useState(new Map<string, number>());
 
     useEffect(() => {
-        const allEntryData = new Map<string, number>();
-        const allKeys = Object.keys(localStorage)
-            .filter(key => key.startsWith('journal-entry-'));
-            
-        allKeys.forEach(key => {
-            const content = localStorage.getItem(key) || '';
-            const wordCount = countWords(content);
-            if (wordCount > 0) {
-                const dateKey = key.replace('journal-entry-', '');
-                allEntryData.set(dateKey, wordCount);
-            }
-        });
-        setEntries(allEntryData);
+        const fetchEntries = async () => {
+            const allEntryData = await dataStore.getAllEntries();
+            setEntries(allEntryData);
+        };
+        fetchEntries();
     }, []);
 
     useEffect(() => {
-        const dateKey = toDateKey(selectedDate);
-        const savedContent = localStorage.getItem(`journal-entry-${dateKey}`) || '';
-        setText(savedContent);
-        setWordCount(countWords(savedContent));
-        setStatus('Ready');
+        const fetchEntry = async () => {
+            const dateKey = toDateKey(selectedDate);
+            const savedContent = await dataStore.getEntry(dateKey) || '';
+            setText(savedContent);
+            setWordCount(countWords(savedContent));
+            setStatus('Ready');
+        };
+        fetchEntry();
     }, [selectedDate]);
 
-    const saveEntry = useCallback((dateToSave: Date, newText: string) => {
+    const saveEntry = useCallback(async (dateToSave: Date, newText: string) => {
         setStatus('Saving...');
         try {
             const dateKey = toDateKey(dateToSave);
+            await dataStore.saveEntry(dateKey, newText);
             const newWordCount = countWords(newText);
-            localStorage.setItem(`journal-entry-${dateKey}`, newText);
             
             setEntries(prev => {
                 const newMap = new Map(prev);
@@ -328,10 +375,15 @@ function DailyStatsView({ onNavigate, dateKey }: DailyStatsViewProps) {
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
 
     useEffect(() => {
-        const content = localStorage.getItem(`journal-entry-${dateKey}`);
-        if (content) {
-            setAnalysis(analyzeText(content));
-        }
+        const fetchAndAnalyze = async () => {
+            const content = await dataStore.getEntry(dateKey);
+            if (content) {
+                setAnalysis(analyzeText(content));
+            } else {
+                setAnalysis(null);
+            }
+        };
+        fetchAndAnalyze();
     }, [dateKey]);
 
     const date = useMemo(() => {
@@ -461,17 +513,37 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
 }
 
 function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('isLoggedIn'));
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleLogin = () => {
-        localStorage.setItem('isLoggedIn', 'true');
+    useEffect(() => {
+        const checkLoginStatus = async () => {
+            const status = await dataStore.isLoggedIn();
+            setIsLoggedIn(status);
+            setIsLoading(false);
+        };
+        checkLoginStatus();
+    }, []);
+
+    const handleLogin = async (email: string) => {
+        await dataStore.login(email);
         setIsLoggedIn(true);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('isLoggedIn');
+    const handleLogout = async () => {
+        await dataStore.logout();
         setIsLoggedIn(false);
     };
+
+    if (isLoading) {
+        return (
+            <div className="app-container">
+                <div className="loading-container">
+                    <p>Loading your journal...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="app-container">
